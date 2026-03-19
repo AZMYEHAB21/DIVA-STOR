@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معرض الصور - DIVA</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .gallery-hero {
+            background: linear-gradient(135deg, #000 0%, #333 100%);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gallery-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .gallery-hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .gallery-filters {
+            text-align: center;
+            margin: 3rem 0;
+            padding: 2rem;
+            animation: fadeInUp 0.8s ease 0.4s both;
+        }
+
+        .filter-btn {
+            background: white;
+            color: #000;
+            border: 2px solid #000;
+            padding: 10px 25px;
+            margin: 0.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            display: inline-block;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: #000;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            cursor: pointer;
+            animation: fadeInUp 0.8s ease;
+            aspect-ratio: 1;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+            display: block;
+        }
+
+        .gallery-item-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+
+        .gallery-item:hover .gallery-item-overlay {
+            opacity: 1;
+        }
+
+        .overlay-icon {
+            font-size: 3rem;
+            color: white;
+            animation: zoomIn 0.3s ease;
+        }
+
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .lightbox.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .lightbox-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90vh;
+            animation: slideUp 0.4s ease;
+        }
+
+        .lightbox-image {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            max-height: 80vh;
+            object-fit: contain;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: rotate(90deg);
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .lightbox-nav:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .lightbox-prev {
+            left: 20px;
+        }
+
+        .lightbox-next {
+            right: 20px;
+        }
+
+        .gallery-counter {
+            color: white;
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 768px) {
+            .gallery-hero h1 {
+                font-size: 2rem;
+            }
+
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 1.5rem;
+                padding: 1.5rem;
+            }
+
+            .filter-btn {
+                padding: 8px 18px;
+                font-size: 0.85rem;
+                margin: 0.3rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .gallery-hero {
+                padding: 50px 20px;
+                min-height: 300px;
+            }
+
+            .gallery-hero h1 {
+                font-size: 1.5rem;
+            }
+
+            .gallery-hero p {
+                font-size: 1rem;
+            }
+
+            .gallery-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .filter-btn {
+                padding: 8px 16px;
+                font-size: 0.8rem;
+                margin: 0.3rem;
+            }
+
+            .lightbox-nav {
+                width: 40px;
+                height: 40px;
+                font-size: 1.5rem;
+            }
+
+            .lightbox-close {
+                width: 40px;
+                height: 40px;
+                font-size: 1.5rem;
+            }
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="logo.png" alt="DIVA Logo">
+                <span class="logo-text">DIVA</span>
+            </div>
+            <button class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html" class="nav-link">الرئيسية</a></li>
+                <li><a href="about.html" class="nav-link">عن المحل</a></li>
+                <li><a href="gallery.html" class="nav-link active-nav">المعرض</a></li>
+                <li><a href="offers.html" class="nav-link">العروض</a></li>
+                <li><a href="contact.html" class="nav-link">الاتصال</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Gallery Hero -->
+    <section class="gallery-hero">
+        <div>
+            <h1>معرض الصور</h1>
+            <p>تصفحي أحدث تشكيلاتنا من الملابس الراقية والعصرية</p>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section class="featured">
+        <div class="container">
+            <!-- Filters -->
+            <div class="gallery-filters">
+                <button class="filter-btn active" data-filter="all">الكل</button>
+                <button class="filter-btn" data-filter="casual">كاجوال</button>
+                <button class="filter-btn" data-filter="formal">سهرة</button>
+                <button class="filter-btn" data-filter="new">جديد</button>
+            </div>
+
+            <!-- Gallery Grid -->
+            <div class="gallery-grid">
+                <div class="gallery-item" data-category="casual">
+                    <img src="https://images.unsplash.com/photo-1506629082632-ba4e7b3871b7?w=500&h=500&fit=crop" alt="صورة 1">
+                    <div class="gallery-item-overlay">
+                        <div class="overlay-icon">🔍</div>
+                    </div>
+                </div>
+
+                <div class="gallery-item" data-category="casual">
+                    <img src="https://images.unsplash.com/photo-1564257631407-4deb1f2f7218?w=500&h=500&fit=crop" alt="صورة 2">
+                    <div class="gallery-item-overlay">
+                        <div class="overlay-icon">🔍</div>
+                    </div>
+                </div>
+
+                <div class="gallery-item" data-category="formal">
+                    <img src="https://images.unsplash.com/photo-1539008588-bbf93b92d4ff?w=500&h=500&fit=crop" alt="صورة 3">
+                    <div class="gallery-item-overlay">
+                        <div class="overlay-icon">🔍</div>
+                    </div>
+                </div>
+
+                <div class="gallery-item" data-category="formal">
+                    <img src="https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=500&h=500&fit=crop" alt="صورة 4">
+                    <div class="gallery-item-overlay">
+                        <div class="overlay-icon">🔍</div>
+                    </div>
+                </div>
+
+                <div class="gallery-item" data-category="new">
+                    <img src="https://images.unsplash.com/photo-1515120396782-c52646db42da?w=500&h=500&fit=crop" alt="صورة 5">
+                    <div class="gallery-item-overlay">
+                        <div class="overlay-icon">🔍</div>
+                    </div>
+                </div>
+
+                <div class="gallery-item" data-category="new">
+                    <img src="https://images.unsplash.com/photo-1511577314726-acfabf5b03ca?w=500&h=500&fit=crop" alt="صورة 6">
+                    <div class="gallery-item-overlay">
+                        <div class="overlay-icon">🔍</div>
+                    </div>
+                </div>
+
+                <div class="gallery-item" data-category="casual">
+                    <img src="https://images.unsplash.com/photo-1519046904884-53103b34b206?w=500&h=500&fit=crop" alt="صورة 7">
+                    <div class="gallery-item-overlay">
+                        <div class="overlay-icon">🔍</div>
+                    </div>
+                </div>
+
+                <div class="gallery-item" data-category="formal">
+                    <img src="https://images.unsplash.com/photo-1487280105995-c5b19375604a?w=500&h=500&fit=crop" alt="صورة 8">
+                    <div class="gallery-item-overlay">
+                        <div class="overlay-icon">🔍</div>
+                    </div>
+                </div>
+
+                <div class="gallery-item" data-category="new">
+                    <img src="https://images.unsplash.com/photo-1465217157519-ba920ce81ced?w=500&h=500&fit=crop" alt="صورة 9">
+                    <div class="gallery-item-overlay">
+                        <div class="overlay-icon">🔍</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="lightbox">
+        <div class="lightbox-content">
+            <button class="lightbox-close">&times;</button>
+            <button class="lightbox-nav lightbox-prev">&#10094;</button>
+            <img id="lightboxImage" class="lightbox-image" src="" alt="">
+            <button class="lightbox-nav lightbox-next">&#10095;</button>
+            <div class="gallery-counter">
+                <span id="currentImage">1</span> / <span id="totalImages">9</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>حول DIVA</h3>
+                <p>محل ملابس حريمي احترافي يقدم أحدث الموضة بجودة عالية وأسعار منافسة</p>
+                <div class="footer-social">
+                     <a href="https://www.facebook.com/share/14aCKS9BwPQ/" target="_blank" class="social-icon" title="Facebook">
+        <i class="fab fa-facebook-f"></i>
+    </a>
+
+    <a href="https://www.instagram.com/diva.stor5?igsh=czZnNTU4eHN0d2t5" target="_blank" class="social-icon" title="Instagram">
+        <i class="fab fa-instagram"></i>
+    </a>
+
+    <a href="https://www.tiktok.com/@diva.store394?_r=1&_t=ZS-94Wt9q2z7Mi"_blank" class="social-icon" title="TikTok">
+        <i class="fab fa-tiktok"></i>
+    </a>
+
+    <a href="https://wa.me/+201142640064"_blank" class="social-icon" title="WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>روابط سريعة</h3>
+                <ul class="footer-links">
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="about.html">عن المحل</a></li>
+                    <li><a href="gallery.html">المعرض</a></li>
+                    <li><a href="contact.html">الاتصال</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>معلومات التواصل</h3>
+                <ul class="footer-links">
+                    <li><a href="tel:+201234567890">الهاتف: +20 123 456 7890</a></li>
+                    <li><a href="mailto:info@diva.com">البريد: info@diva.com</a></li>
+                    <li><a href="https://wa.me/20" target="_blank">واتس: +20 123 456 7890</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-divider"></div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 DIVA. جميع الحقوق محفوظة &copy;</p>
+            <p class="footer-credit"><a href="privacy.html" style="color: inherit; text-decoration: none;">سياسة الخصوصية</a> | صنع بحب ❤️</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        let currentImageIndex = 0;
+        let filteredImages = [];
+        let allImages = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            allImages = Array.from(document.querySelectorAll('.gallery-item'));
+            filteredImages = [...allImages];
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const category = this.dataset.filter;
+                    filterGallery(category);
+                });
+            });
+
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.gallery-item')) {
+                    const item = e.target.closest('.gallery-item');
+                    currentImageIndex = filteredImages.indexOf(item);
+                    openLightbox();
+                }
+            });
+
+            document.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
+            document.querySelector('.lightbox-prev').addEventListener('click', previousImage);
+            document.querySelector('.lightbox-next').addEventListener('click', nextImage);
+            document.getElementById('lightbox').addEventListener('click', function(e) {
+                if (e.target === this) closeLightbox();
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (!document.getElementById('lightbox').classList.contains('active')) return;
+                if (e.key === 'Escape') closeLightbox();
+                if (e.key === 'ArrowLeft') nextImage();
+                if (e.key === 'ArrowRight') previousImage();
+            });
+        });
+
+        function filterGallery(category) {
+            if (category === 'all') {
+                filteredImages = [...allImages];
+            } else {
+                filteredImages = allImages.filter(item => item.dataset.category === category);
+            }
+
+            allImages.forEach(item => {
+                item.style.display = 'none';
+                item.style.animation = 'none';
+            });
+
+            setTimeout(() => {
+                filteredImages.forEach((item, index) => {
+                    item.style.display = 'block';
+                    item.style.animation = `fadeInUp 0.6s ease ${index * 0.1}s both`;
+                });
+            }, 10);
+        }
+
+        function openLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            updateLightboxImage();
+            lightbox.classList.add('active');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
+
+        function updateLightboxImage() {
+            const image = filteredImages[currentImageIndex].querySelector('img');
+            document.getElementById('lightboxImage').src = image.src;
+            document.getElementById('lightboxImage').alt = image.alt;
+            document.getElementById('currentImage').textContent = currentImageIndex + 1;
+            document.getElementById('totalImages').textContent = filteredImages.length;
+        }
+
+        function nextImage() {
+            currentImageIndex = (currentImageIndex + 1) % filteredImages.length;
+            updateLightboxImage();
+        }
+
+        function previousImage() {
+            currentImageIndex = (currentImageIndex - 1 + filteredImages.length) % filteredImages.length;
+            updateLightboxImage();
+        }
+    </script>
+</body>
+</html>
