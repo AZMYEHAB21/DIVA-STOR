@@ -88,8 +88,8 @@ DIVA-STOR/
 
 **عزمي ايهاب** 👑
 
-* GitHub:https://github.com/AZMYEHAB21
-* Email: [azmyehab610@gmail.com](azmyehab610@gmail.com)
+* GitHub: https://github.com/AZMYEHAB21
+* Email:  azmyehab610@gmail.com
 
 ---
 
