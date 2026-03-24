@@ -88,7 +88,7 @@ DIVA-STOR/
 
 **عزمي ايهاب** 👑
 
-* GitHub: [[https://github.com/your-username](https://github.com/AZMYEHAB21)](https://github.com/your-username)
+* GitHub:https://github.com/AZMYEHAB21
 * Email: [azmyehab610@gmail.com](azmyehab610@gmail.com)
 
 ---
