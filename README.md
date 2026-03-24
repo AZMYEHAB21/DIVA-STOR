@@ -47,22 +47,7 @@ DIVA-STOR/
 └── README.md
 ```
 
----
 
-## ⚙️ طريقة التشغيل
-
-```bash
-# تثبيت الحزم
-npm install
-
-# تشغيل المشروع
-npm run dev
-
-# build للإنتاج
-npm run build
-```
-
----
 
 ## 🌐 Demo
 
