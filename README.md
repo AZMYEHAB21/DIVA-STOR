@@ -86,10 +86,10 @@ DIVA-STOR/
 
 ## 🧑‍💻 المطور
 
-**اسمك هنا** 👑
+**عزمي ايهاب** 👑
 
 * GitHub: [https://github.com/your-username](https://github.com/your-username)
-* Email: [your@email.com](mailto:your@email.com)
+* Email: [your@email.com](azmyehab610@gmail.com)
 
 ---
 
