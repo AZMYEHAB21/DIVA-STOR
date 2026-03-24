@@ -51,7 +51,7 @@ DIVA-STOR/
 
 ## 🌐 Demo
 
-> (حط هنا لينك الموقع لو متوفر)
+> (https://azmyehab21.github.io/DIVA-STOR/)
 
 ---
 
