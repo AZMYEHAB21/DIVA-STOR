@@ -8,7 +8,176 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
+    <!-- Navigation --><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>العروض - DIVA</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
     <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="logo.png" alt="DIVA Logo">
+                <span class="logo-text">DIVA</span>
+            </div>
+            <button class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html" class="nav-link">الرئيسية</a></li>
+                <li><a href="about.html" class="nav-link">عن المحل</a></li>
+                <li><a href="gallery.html" class="nav-link">المعرض</a></li>
+                <li><a href="#offers" class="nav-link">العروض</a></li>
+                <li><a href="contact.html" class="nav-link">الاتصال</a></li>
+                <li><a href=
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Offers Section -->
+    <section id="offers" class="offers">
+        <div id="noOffersMessage" class="no-offers-message">
+            <div class="no-offers-box">
+                <div class="no-offers-icon">🎁</div>
+                <h2>لا توجد عروض متاحة الآن</h2>
+                <p>نعتذر عن عدم توفر عروض حالياً</p>
+                <p class="no-offers-subtitle">تابعينا قريباً للحصول على أفضل العروض والخصومات</p>
+                <a href="index.html" class="btn btn-primary">العودة للرئيسية</a>
+            </div>
+        </div>
+
+        <div class="offers-wrapper" id="offersWrapper">
+            <div class="container">
+                <div class="section-header">
+                    <h1>عروض خاصة</h1>
+                    <p>استمتعي بأفضل العروض والتخفيفات على منتجاتنا المميزة</p>
+                </div>
+
+                <div class="offers-grid" id="offersGrid">
+                <!-- Offer 1 -->
+                <div class="offer-card">
+                    <div class="offer-badge">خصم 30%</div>
+                    <div class="offer-image">🛍️</div>
+                    <h3>فصل الصيف</h3>
+                    <p>تخفيف 30% على جميع ملابس الصيف</p>
+                    <p class="offer-date">حتى نهاية مايو</p>
+                </div>
+
+                <!-- Offer 2 -->
+                <div class="offer-card">
+                    <div class="offer-badge">خصم 25%</div>
+                    <div class="offer-image">👗</div>
+                    <h3>فساتين السهرة</h3>
+                    <p>خصم خاص على جميع فساتين السهرة</p>
+                    <p class="offer-date">عروض محدودة</p>
+                </div>
+
+                <!-- Offer 3 -->
+                <div class="offer-card">
+                    <div class="offer-badge">خصم 20%</div>
+                    <div class="offer-image">👕</div>
+                    <h3>الملابس الكاجوال</h3>
+                    <p>تخفيفات على التيشيرتات والبناطيل</p>
+                    <p class="offer-date">طول السنة</p>
+                </div>
+
+                <!-- Offer 4 -->
+                <div class="offer-card">
+                    <div class="offer-badge">اشتري 2 بـ 1</div>
+                    <div class="offer-image">🎁</div>
+                    <h3>عرض خاص</h3>
+                    <p>عند شراء بلوزتين احصلي على ثالثة بنصف الثمن</p>
+                    <p class="offer-date">عرض محدود الوقت</p>
+                </div>
+
+                <!-- Offer 5 -->
+                <div class="offer-card">
+                    <div class="offer-badge">خصم 15%</div>
+                    <div class="offer-image">🧥</div>
+                    <h3>الملابس الشتوية</h3>
+                    <p>تخفيف على الجاكيتات والمعاطف</p>
+                    <p class="offer-date">في فصل الشتاء</p>
+                </div>
+
+                <!-- Offer 6 -->
+                <div class="offer-card">
+                    <div class="offer-badge">جديد</div>
+                    <div class="offer-image">✨</div>
+                    <h3>المجموعة الجديدة</h3>
+                    <p>أحدث التصاميم والألوان المميزة</p>
+                    <p class="offer-date">وصول مستمر</p>
+                </div>
+            </div>
+
+                <div class="newsletter-section">
+                    <h2>اشتركي في نشرتنا البريدية</h2>
+                    <p>احصلي على آخر العروض والمنتجات الجديدة مباشرة في بريدك</p>
+                    <form class="newsletter-form" id="newsletterForm">
+                        <input type="email" placeholder="أدخلي بريدك الإلكتروني" required>
+                        <button type="submit" class="btn btn-primary">اشترك الآن</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>حول DIVA</h3>
+                <p>محل ملابس حريمي احترافي يقدم أحدث الموضة بجودة عالية وأسعار منافسة</p>
+                <div class="footer-social">
+                    <a href="https://www.facebook.com/share/14aCKS9BwPQ/" target="_blank" class="social-icon" title="Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="https://www.instagram.com/diva.stor5?igsh=czZnNTU4eHN0d2t5" target="_blank" class="social-icon" title="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="https://www.tiktok.com/@diva.store394?_r=1&_t=ZS-94Wt9q2z7Mi" target="_blank" class="social-icon" title="TikTok">
+                        <i class="fab fa-tiktok"></i>
+                    </a>
+                    <a href="https://wa.me/+201142640064" target="_blank" class="social-icon" title="WhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>روابط سريعة</h3>
+                <ul class="footer-links">
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="about.html">عن المحل</a></li>
+                    <li><a href="offers.html">العروض</a></li>
+                    <li><a href="contact.html">الاتصال</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>معلومات التواصل</h3>
+                <ul class="footer-links">
+                    <li><a href="tel:+201234567890">الهاتف: 01142640064</a></li>
+                    <li><a href="mailto:divastor0@gmail.com">البريد: divastor0@gmail.com</a></li>
+                    <li><a href="https://wa.me/20" target="_blank">واتس: 01142640064</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-divider"></div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 DIVA. جميع الحقوق محفوظة &copy;</p>
+            <p class="footer-credit"><a href="privacy.html" style="color: inherit; text-decoration: none;">سياسة الخصوصية</a> | صنع بحب ❤️</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
     <nav class="navbar">
         <div class="nav-container">
             <div class="logo">
