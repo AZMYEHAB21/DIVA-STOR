@@ -112,7 +112,40 @@ if (document.getElementById('contactForm')) {
             };
 
             // Here you would normally send this data to a server
-            console.log('Form submitted:', formData);
+           emailjs.send("service_endnvxq", "template_o9cp0vp", {
+    name: formData.name,
+    email: formData.email,
+    phone: formData.phone,
+    message: formData.message
+})
+.then(function(response) {
+    console.log("SUCCESS!", response.status, response.text);
+
+    const successMsg = document.createElement('div');
+    successMsg.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #4CAF50;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 5px;
+        z-index: 1000;
+    `;
+    successMsg.textContent = 'تم إرسال الرسالة بنجاح ✅';
+    document.body.appendChild(successMsg);
+
+    setTimeout(() => {
+        successMsg.remove();
+    }, 3000);
+
+    document.getElementById('contactForm').reset();
+
+}, function(error) {
+    console.log("FAILED...", error);
+
+    alert("حصل خطأ في الإرسال ❌");
+});
 
             // Show success message
             const successMsg = document.createElement('div');
