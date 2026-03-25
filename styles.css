@@ -1009,6 +1009,32 @@ body {
         text-align: center;
         gap: 0;
     }
+    @media (max-width: 768px) {
+
+    .no-offers-box {
+        width: 100%;
+        max-width: 100%;
+        padding: 1.5rem 1.5rem;
+        border-radius: 15px;
+    }
+
+    .no-offers-box h2 {
+        font-size: 1.5rem;
+    }
+
+    .no-offers-box p {
+        font-size: 0.9rem;
+    }
+
+    .no-offers-icon {
+        font-size: 3rem;
+    }
+
+    .no-offers-message {
+        width: 100%;
+        padding: 0 10px;
+    }
+}
 
     .nav-menu.active {
         display: flex;
@@ -1238,4 +1264,4 @@ body {
 .social-icon:hover {
     background: #007bff;
     transform: scale(1.1);
-}
+}ئ
