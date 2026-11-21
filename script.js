@@ -378,13 +378,19 @@ const STORE_HOURS = { default: [10, 22], 5: [14, 22] };
   updateStatus(); setInterval(updateStatus, 60000);
 
   /* ------------------------- المعرض + Lightbox ------------------------- */
+
+  /* ------------------------- المعرض + Lightbox ------------------------- */
   const grid = $('.g-grid');
+
   if (grid) {
-    const items = $$('.g-item', grid);
+    let items = $$('.g-item', grid);
+    let currentFilter = 'all';
+
     const pills = $('.pills');
-    const slider = $('.slider', pills);
-    const pillBtns = $$('.pill', pills);
+    const slider = pills ? $('.slider', pills) : null;
+    const pillBtns = pills ? $$('.pill', pills) : [];
     const countEl = $('#gCount');
+
     let visible = items.slice();
 
     function moveSlider(btn) {
@@ -392,87 +398,226 @@ const STORE_HOURS = { default: [10, 22], 5: [14, 22] };
       slider.style.width = btn.offsetWidth + 'px';
       slider.style.transform = 'translateX(' + btn.offsetLeft + 'px)';
     }
-    function setActive(btn) { pillBtns.forEach(b => { b.classList.toggle('active', b === btn); b.setAttribute('aria-pressed', String(b === btn)); }); moveSlider(btn); }
+
+    function setActive(btn) {
+      pillBtns.forEach(b => {
+        b.classList.toggle('active', b === btn);
+        b.setAttribute('aria-pressed', String(b === btn));
+      });
+      moveSlider(btn);
+    }
 
     function applyFilter(cat, animate) {
-      const next = items.filter(i => cat === 'all' || i.dataset.category === cat);
+      currentFilter = cat;
+
+      const nextItems = items.filter(i =>
+        cat === 'all' || i.dataset.category === cat
+      );
+
       const run = () => {
-        items.forEach(i => { i.hidden = !next.includes(i); });
-        visible = next;
-        next.forEach((i, idx) => {
-          i.style.setProperty('--d', Math.min(idx * 60, 500) + 'ms');
-          requestAnimationFrame(() => requestAnimationFrame(() => i.classList.remove('is-out')));
+        items.forEach(i => {
+          i.hidden = !nextItems.includes(i);
         });
-        if (countEl) countEl.textContent = String(next.length);
+
+        visible = nextItems;
+
+        nextItems.forEach((i, idx) => {
+          i.style.setProperty('--d', Math.min(idx * 60, 500) + 'ms');
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => i.classList.remove('is-out'))
+          );
+        });
+
+        if (countEl) countEl.textContent = String(nextItems.length);
       };
-      if (!animate || reduced) { items.forEach(i => i.classList.remove('is-out')); run(); return; }
+
+      if (!animate || reduced) {
+        items.forEach(i => i.classList.remove('is-out'));
+        run();
+        return;
+      }
+
       items.forEach(i => i.classList.add('is-out'));
       setTimeout(run, 320);
     }
 
-    pillBtns.forEach(btn => btn.addEventListener('click', () => {
-      setActive(btn); applyFilter(btn.dataset.filter, true);
-      try { history.replaceState(null, '', btn.dataset.filter === 'all' ? location.pathname : '?filter=' + btn.dataset.filter); } catch (e) { /* ignore */ }
-    }));
+    pillBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        setActive(btn);
+        applyFilter(btn.dataset.filter, true);
+
+        try {
+          history.replaceState(
+            null,
+            '',
+            btn.dataset.filter === 'all'
+              ? location.pathname
+              : '?filter=' + btn.dataset.filter
+          );
+        } catch (e) {
+          /* ignore */
+        }
+      });
+    });
 
     const wanted = new URLSearchParams(location.search).get('filter');
-    const initBtn = pillBtns.find(b => b.dataset.filter === wanted) || pillBtns[0];
-    setActive(initBtn);
-    if (initBtn.dataset.filter !== 'all') applyFilter(initBtn.dataset.filter, false);
-    window.addEventListener('resize', () => moveSlider($('.pill.active', pills)));
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => moveSlider($('.pill.active', pills)));
-    window.addEventListener('load', () => moveSlider($('.pill.active', pills)));
+    const initBtn =
+      pillBtns.find(b => b.dataset.filter === wanted) || pillBtns[0];
+
+    if (initBtn) {
+      setActive(initBtn);
+      if (initBtn.dataset.filter !== 'all') {
+        applyFilter(initBtn.dataset.filter, false);
+      }
+    }
+
+    window.addEventListener('resize', () => {
+      if (pills) moveSlider($('.pill.active', pills));
+    });
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => {
+        if (pills) moveSlider($('.pill.active', pills));
+      });
+    }
+
+    window.addEventListener('load', () => {
+      if (pills) moveSlider($('.pill.active', pills));
+    });
 
     // Lightbox
-    const lb = $('#lb'); const lbImg = $('#lbImg'); const lbCap = $('#lbCap');
-    const lbCur = $('#lbCur'); const lbTot = $('#lbTot');
-    let idx = 0, lastFocus = null;
+    const lb = $('#lb');
+    const lbImg = $('#lbImg');
+    const lbCap = $('#lbCap');
+    const lbCur = $('#lbCur');
+    const lbTot = $('#lbTot');
+
+    let idx = 0;
+    let lastFocus = null;
 
     function show(i, dir) {
+      if (!visible.length || !lb || !lbImg) return;
+
       idx = (i + visible.length) % visible.length;
+
       const src = $('img', visible[idx]);
+      if (!src) return;
+
       const swap = () => {
         lbImg.style.visibility = 'visible';
-        lbImg.src = src.currentSrc || src.src; lbImg.alt = src.alt;
-        lbCap.textContent = src.alt; lbCur.textContent = idx + 1; lbTot.textContent = visible.length;
-        lbImg.onload = lbImg.onerror = () => lbImg.classList.remove('swap');
+        lbImg.src = src.currentSrc || src.src;
+        lbImg.alt = src.alt;
+
+        if (lbCap) lbCap.textContent = src.alt;
+        if (lbCur) lbCur.textContent = String(idx + 1);
+        if (lbTot) lbTot.textContent = String(visible.length);
+
+        lbImg.onload = lbImg.onerror = () =>
+          lbImg.classList.remove('swap');
+
         setTimeout(() => lbImg.classList.remove('swap'), 700);
       };
-      if (dir === 0 || reduced) swap(); else { lbImg.classList.add('swap'); setTimeout(swap, 200); }
-      [1, -1].forEach(d => { const n = $('img', visible[(idx + d + visible.length) % visible.length]); if (n) new Image().src = n.src; });
+
+      if (dir === 0 || reduced) {
+        swap();
+      } else {
+        lbImg.classList.add('swap');
+        setTimeout(swap, 200);
+      }
+
+      [1, -1].forEach(d => {
+        const n = $('img', visible[(idx + d + visible.length) % visible.length]);
+        if (n) new Image().src = n.src;
+      });
     }
+
     function open(i) {
+      if (!visible.length || !lb) return;
+
       lastFocus = document.activeElement;
-      lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false');
+      lb.classList.add('open');
+      lb.setAttribute('aria-hidden', 'false');
       document.body.classList.add('no-scroll');
+
       show(i, 0);
-      setTimeout(() => $('.lb-close', lb).focus(), 50);
+
+      setTimeout(() => {
+        const closeBtn = $('.lb-close', lb);
+        if (closeBtn) closeBtn.focus();
+      }, 50);
     }
+
     function close() {
-      lb.classList.remove('open'); lb.setAttribute('aria-hidden', 'true');
+      if (!lb) return;
+
+      lb.classList.remove('open');
+      lb.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('no-scroll');
+
       if (lastFocus) lastFocus.focus();
     }
-    const next = () => show(idx + 1, 1), prev = () => show(idx - 1, -1);
 
-    items.forEach(it => it.addEventListener('click', () => open(visible.indexOf(it))));
-    $('.lb-close', lb).addEventListener('click', close);
-    $('.lb-bg', lb).addEventListener('click', close);
-    $('.lb-next', lb).addEventListener('click', next);
-    $('.lb-prev', lb).addEventListener('click', prev);
-    lb.addEventListener('click', e => { if (e.target === lb) close(); });
-    document.addEventListener('keydown', e => {
-      if (!lb.classList.contains('open')) return;
-      if (e.key === 'Escape') close();
-      else if (e.key === 'ArrowLeft') next();   // الاتجاه RTL: السهم الشمال = التالي
-      else if (e.key === 'ArrowRight') prev();
+    const next = () => show(idx + 1, 1);
+    const prev = () => show(idx - 1, -1);
+
+    // التعامل مع الصور المحملة ديناميكيًا
+    grid.addEventListener('click', e => {
+      const it = e.target.closest('.g-item');
+
+      if (!it || !grid.contains(it) || it.hidden) return;
+
+      const i = visible.indexOf(it);
+      if (i !== -1) open(i);
     });
-    let sx = 0, sy = 0;
-    lb.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
-    lb.addEventListener('touchend', e => {
-      const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
-      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { dx > 0 ? next() : prev(); }
-    }, { passive: true });
+
+    // تحديث قائمة الصور بعد تحميل صور Supabase
+    const galleryObserver = new MutationObserver(() => {
+      items = $$('.g-item', grid);
+      applyFilter(currentFilter, false);
+    });
+
+    galleryObserver.observe(grid, { childList: true });
+
+    const closeBtn = lb ? $('.lb-close', lb) : null;
+    const bgBtn = lb ? $('.lb-bg', lb) : null;
+    const nextBtn = lb ? $('.lb-next', lb) : null;
+    const prevBtn = lb ? $('.lb-prev', lb) : null;
+
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    if (bgBtn) bgBtn.addEventListener('click', close);
+    if (nextBtn) nextBtn.addEventListener('click', next);
+    if (prevBtn) prevBtn.addEventListener('click', prev);
+
+    if (lb) {
+      lb.addEventListener('click', e => {
+        if (e.target === lb) close();
+      });
+
+      document.addEventListener('keydown', e => {
+        if (!lb.classList.contains('open')) return;
+
+        if (e.key === 'Escape') close();
+        else if (e.key === 'ArrowLeft') next();
+        else if (e.key === 'ArrowRight') prev();
+      });
+
+      let sx = 0;
+      let sy = 0;
+
+      lb.addEventListener('touchstart', e => {
+        sx = e.touches[0].clientX;
+        sy = e.touches[0].clientY;
+      }, { passive: true });
+
+      lb.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - sx;
+        const dy = e.changedTouches[0].clientY - sy;
+
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+          dx > 0 ? next() : prev();
+        }
+      }, { passive: true });
+    }
   }
 
   /* ------------------------- العروض (تشغيل / إيقاف) ------------------------- */
