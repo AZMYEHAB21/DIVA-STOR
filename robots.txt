@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://azmyehab21.github.io/DIVA-STOR/sitemap.xml

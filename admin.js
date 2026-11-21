@@ -1,0 +1,59 @@
+(()=>{
+ const cfg=window.DIVA_SUPABASE||{}, $=(s,c=document)=>c.querySelector(s), $$=(s,c=document)=>[...c.querySelectorAll(s)];
+ const configured=cfg.url&&!cfg.url.startsWith("YOUR_")&&cfg.anonKey&&!cfg.anonKey.startsWith("YOUR_")&&cfg.adminEmail&&!cfg.adminEmail.startsWith("YOUR_");
+ if(!configured){const m=$("#loginMsg");if(m)m.textContent="يجب أولاً ضبط بيانات Supabase داخل supabase-config.js حسب ملف تعليمات الربط.";const st=$("#connectionState");if(st)st.textContent="غير مربوط";return;}
+ const db=window.supabase.createClient(cfg.url,cfg.anonKey);
+ const toast=t=>{let x=document.createElement("div");x.className="toast";x.textContent=t;document.body.append(x);setTimeout(()=>x.remove(),3200)};
+ async function requireAuth(){const {data:{session}}=await db.auth.getSession();if(!session){if(!location.pathname.endsWith("admin-login.html"))location.href="admin-login.html";return false;}if(location.pathname.endsWith("admin-login.html"))location.href="admin.html";return true;}
+ const login=$("#loginForm");
+ if(login)login.addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(login),u=String(f.get("username")).trim(),p=String(f.get("password"));const msg=$("#loginMsg");if(u!=="admin.eg"){msg.textContent="اسم المستخدم غير صحيح.";return;}const btn=$("button",login);btn.disabled=true;msg.textContent="جارٍ التحقق...";const {error}=await db.auth.signInWithPassword({email:cfg.adminEmail,password:p});btn.disabled=false;msg.textContent=error?"تعذر تسجيل الدخول. راجع البيانات وحاول مرة أخرى.":"";if(!error)location.href="admin.html";});
+ const logout=$("#logoutBtn");
+ if(logout)logout.addEventListener("click",async()=>{await db.auth.signOut();location.href="admin-login.html";});
+ if(!$("#offerForm")&&!$("#galleryForm")&&!$("#siteImageForm")&&!$("#settingsForm"))return;
+ requireAuth().then(ok=>{if(ok)initDashboard();});
+ async function initDashboard(){
+  $("#connectionState").textContent="متصل";
+  $$(".tab").forEach(b=>b.addEventListener("click",()=>{$$(".tab").forEach(x=>x.classList.toggle("active",x===b));$$(".panel").forEach(x=>x.classList.toggle("active",x.id==="tab-"+b.dataset.tab));}));
+  await Promise.all([loadOffers(),loadGallery(),loadSiteImages(),loadSettings()]);
+  const of=$("#offerForm");of.addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(of),id=f.get("id");const row={title:f.get("title").trim(),badge:f.get("badge").trim(),description:f.get("description").trim(),date_label:f.get("date_label").trim(),icon:(f.get("icon")||"fa-bag-shopping").trim(),sort_order:Number(f.get("sort_order")||0),active:of.elements.active.checked};const res=id?await db.from("diva_offers").update(row).eq("id",id):await db.from("diva_offers").insert(row);if(res.error)return toast("تعذر الحفظ: "+res.error.message);of.reset();of.elements.sort_order.value=0;of.elements.icon.value="fa-bag-shopping";of.elements.active.checked=true;of.elements.id.value="";toast("تم حفظ العرض");loadOffers();});
+  $("#clearOffer").addEventListener("click",()=>setTimeout(()=>{of.elements.id.value="";of.elements.icon.value="fa-bag-shopping";of.elements.sort_order.value=0;},0));
+  const gf=$("#galleryForm");gf.addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(gf),id=f.get("id"),file=gf.elements.image.files[0];let image_url=null;if(file){if(file.size>10*1024*1024)return toast("حجم الصورة أكبر من 10 ميجابايت");if(!["image/jpeg","image/png","image/webp"].includes(file.type))return toast("صيغة الصورة غير مدعومة");const ext=file.name.split(".").pop().toLowerCase(),path=`${Date.now()}-${crypto.randomUUID()}.${ext}`;const up=await db.storage.from("diva-media").upload(path,file,{upsert:false,contentType:file.type});if(up.error)return toast("فشل رفع الصورة: "+up.error.message);image_url=db.storage.from("diva-media").getPublicUrl(path).data.publicUrl;}
+    let row={title:f.get("title").trim(),category:f.get("category"),active:gf.elements.active.checked};if(image_url)row.image_url=image_url;
+    let res;if(id)res=await db.from("diva_gallery").update(row).eq("id",id);else{if(!image_url)return toast("اختاري صورة أولاً");row.sort_order=Date.now();res=await db.from("diva_gallery").insert(row);}if(res.error)return toast("تعذر حفظ الصورة: "+res.error.message);gf.reset();gf.elements.id.value="";gf.elements.active.checked=true;toast("تم حفظ الصورة");loadGallery();});
+  const sif=$("#siteImageForm");
+  sif.addEventListener("submit",async e=>{
+   e.preventDefault();const f=new FormData(sif),id=String(f.get("id")||""),file=sif.elements.image.files[0];
+   let current=siteImageCache.find(x=>x.id===id),image_url=current?.image_url||"",storage_path=current?.storage_path||null;
+   if(file){if(file.size>10*1024*1024)return toast("حجم الصورة أكبر من 10 ميجابايت");if(!["image/jpeg","image/png","image/webp"].includes(file.type))return toast("الصيغ المسموحة JPG وPNG وWEBP فقط");const ext=(file.name.split(".").pop()||"jpg").toLowerCase(),path=`site-images/${Date.now()}-${crypto.randomUUID()}.${ext}`;const up=await db.storage.from("diva-media").upload(path,file,{upsert:false,contentType:file.type});if(up.error)return toast("فشل رفع الصورة: "+up.error.message);image_url=db.storage.from("diva-media").getPublicUrl(path).data.publicUrl;storage_path=path;}
+   if(!image_url)return toast("اختار صورة من جهازك أولاً");
+   const placement=sif.elements.placement.value;
+   const row={title:String(f.get("title")).trim(),category:String(f.get("category")).trim(),alt_text:String(f.get("alt_text")||f.get("title")).trim(),image_url,storage_path,active:sif.elements.active.checked,show_in_gallery:placement!=="home",show_on_home:placement!=="gallery",updated_at:new Date().toISOString()};
+   if(!row.category)return toast("اكتب تصنيف الصورة");
+   let res;if(id)res=await db.from("diva_site_images").update(row).eq("id",id);else{row.sort_order=Date.now();res=await db.from("diva_site_images").insert(row);}
+   if(res.error){if(file&&storage_path)await db.storage.from("diva-media").remove([storage_path]);return toast("تعذر حفظ الصورة: "+res.error.message);}
+   if(file&&current?.storage_path&&current.storage_path!==storage_path)await db.storage.from("diva-media").remove([current.storage_path]);
+   sif.reset();sif.elements.id.value="";sif.elements.active.checked=true;sif.elements.placement.value="gallery";toast("تم حفظ الصورة بنجاح");await loadSiteImages();
+  });
+  $("#clearSiteImage").addEventListener("click",()=>setTimeout(()=>{sif.elements.id.value="";sif.elements.active.checked=true;sif.elements.placement.value="gallery";},0));
+  $("#settingsForm").addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.currentTarget);for(const key of ["hero_title","hero_subtitle","hero_image"]){const value=String(f.get(key)||"").trim();if(value){const {error}=await db.from("diva_settings").upsert({key,value,updated_at:new Date().toISOString()});if(error)return toast("تعذر حفظ الإعدادات: "+error.message);}}toast("تم حفظ إعدادات الصفحة الرئيسية");});
+ }
+ async function loadOffers(){const {data,error}=await db.from("diva_offers").select("*").order("sort_order");if(error)return toast(error.message);$("#offerCount").textContent=data.filter(x=>x.active).length;const box=$("#offersList");box.innerHTML=data.map(o=>`<article class="manage-item"><div><h3>${esc(o.title)} · ${esc(o.badge)}</h3><p>${esc(o.description)} · ${o.active?"منشور":"مخفي"}</p></div><div class="item-actions"><button data-edit-offer="${o.id}">تعديل</button><button class="danger" data-delete-offer="${o.id}">حذف</button></div></article>`).join("")||'<div class="empty">لا توجد عروض بعد.</div>';
+  $$("[data-edit-offer]",box).forEach(b=>b.onclick=()=>{const o=data.find(x=>x.id===b.dataset.editOffer),f=$("#offerForm");Object.keys(o).forEach(k=>{if(f.elements[k]){if(f.elements[k].type==="checkbox")f.elements[k].checked=o[k];else f.elements[k].value=o[k]??"";}});window.scrollTo({top:f.offsetTop-100,behavior:"smooth"});});
+  $$("[data-delete-offer]",box).forEach(b=>b.onclick=async()=>{if(!confirm("متأكد من حذف العرض؟"))return;const {error}=await db.from("diva_offers").delete().eq("id",b.dataset.deleteOffer);if(error)toast(error.message);else{toast("تم حذف العرض");loadOffers();}});
+ }
+ async function loadGallery(){const {data,error}=await db.from("diva_gallery").select("*").order("sort_order");if(error)return toast(error.message);$("#galleryCount").textContent=data.length;const box=$("#galleryList");box.innerHTML=data.map(g=>`<article class="manage-item"><img class="thumb" src="${esc(g.image_url)}" alt=""><div><h3>${esc(g.title)}</h3><p>${g.category==="casual"?"كاجوال":g.category==="formal"?"سهرة":"جديد"} · ${g.active?"منشورة":"مخفية"}</p></div><div class="item-actions"><button data-edit-gallery="${g.id}">تعديل</button><button class="danger" data-delete-gallery="${g.id}">حذف</button></div></article>`).join("")||'<div class="empty">لا توجد صور مضافة.</div>';
+  $$("[data-edit-gallery]",box).forEach(b=>b.onclick=()=>{const g=data.find(x=>x.id===b.dataset.editGallery),f=$("#galleryForm");f.elements.id.value=g.id;f.elements.title.value=g.title;f.elements.category.value=g.category;f.elements.active.checked=g.active;f.scrollIntoView({behavior:"smooth",block:"center"});});
+  $$("[data-delete-gallery]",box).forEach(b=>b.onclick=async()=>{if(!confirm("متأكد من حذف الصورة؟"))return;const {error}=await db.from("diva_gallery").delete().eq("id",b.dataset.deleteGallery);if(error)toast(error.message);else{toast("تم حذف الصورة");loadGallery();}});
+ }
+ let siteImageCache=[];
+ async function loadSiteImages(){
+  const {data,error}=await db.from("diva_site_images").select("*").order("sort_order");
+  if(error){const box=$("#siteImagesList");if(box)box.innerHTML='<div class="empty">لا يمكن قراءة صور الموقع. شغّل ملف site-images-migration.sql في Supabase أولاً.</div>';return;}
+  siteImageCache=data||[];const box=$("#siteImagesList");if(!box)return;
+  box.innerHTML=siteImageCache.map(g=>`<article class="manage-item"><img class="thumb" src="${esc(g.image_url)}" alt="${esc(g.alt_text||g.title)}"><div><h3>${esc(g.title)}</h3><p>${esc(g.category)} · ${g.show_on_home?"الرئيسية":""}${g.show_on_home&&g.show_in_gallery?" + ":""}${g.show_in_gallery?"المعرض":""} · ${g.active?"ظاهرة":"مخفية"}</p></div><div class="item-actions"><button data-edit-site-image="${g.id}">تعديل</button><button class="danger" data-delete-site-image="${g.id}">حذف</button></div></article>`).join("")||'<div class="empty">لا توجد صور. يمكنك إضافة أول صورة من النموذج أعلاه.</div>';
+  $$('[data-edit-site-image]',box).forEach(b=>b.onclick=()=>{const g=siteImageCache.find(x=>x.id===b.dataset.editSiteImage),f=$("#siteImageForm");f.elements.id.value=g.id;f.elements.title.value=g.title;f.elements.category.value=g.category;f.elements.alt_text.value=g.alt_text||"";f.elements.active.checked=g.active;f.elements.placement.value=g.show_on_home?(g.show_in_gallery?"both":"home"):"gallery";f.scrollIntoView({behavior:"smooth",block:"center"});});
+  $$('[data-delete-site-image]',box).forEach(b=>b.onclick=async()=>{const g=siteImageCache.find(x=>x.id===b.dataset.deleteSiteImage);if(!g||!confirm("حذف الصورة نهائيًا من إدارة الموقع؟"))return;const {error}=await db.from("diva_site_images").delete().eq("id",g.id);if(error)return toast("تعذر الحذف: "+error.message);if(g.storage_path)await db.storage.from("diva-media").remove([g.storage_path]);toast("تم حذف الصورة");loadSiteImages();});
+ }
+ async function loadSettings(){const {data,error}=await db.from("diva_settings").select("*");if(error)return;const f=$("#settingsForm");(data||[]).forEach(x=>{if(f.elements[x.key])f.elements[x.key].value=x.value;});}
+ function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+})();
