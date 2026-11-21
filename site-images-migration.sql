@@ -43,6 +43,7 @@ alter table public.diva_site_images add column if not exists show_in_gallery boo
 alter table public.diva_site_images add column if not exists show_on_home boolean not null default false;
 alter table public.diva_site_images add column if not exists storage_path text;
 alter table public.diva_site_images add column if not exists sort_order integer not null default 0;
+alter table public.diva_site_images alter column sort_order type bigint using sort_order::bigint;
 alter table public.diva_site_images add column if not exists updated_at timestamptz not null default now();
 
 create unique index if not exists diva_site_images_image_key_uidx
@@ -81,26 +82,8 @@ for all to authenticated
 using (exists (select 1 from public.diva_admins a where a.user_id = (select auth.uid())))
 with check (exists (select 1 from public.diva_admins a where a.user_id = (select auth.uid())));
 
--- Import all six legacy offers from offers.html, without duplicating them.
-update public.diva_offers
-set active = true
-where title in ('فصل الصيف','فساتين السهرة','الملابس الكاجوال',
-                'عرض خاص','الملابس الشتوية','المجموعة الجديدة');
-
-insert into public.diva_offers
-(title, description, badge, date_label, icon, active, sort_order)
-select v.title, v.description, v.badge, v.date_label, v.icon, true, v.sort_order
-from (values
-  ('فصل الصيف','تخفيض 30% على جميع ملابس الصيف','خصم 30%','حتى نهاية مايو','fa-bag-shopping',1),
-  ('فساتين السهرة','خصم خاص على جميع فساتين السهرة','خصم 25%','عروض محدودة','fa-person-dress',2),
-  ('الملابس الكاجوال','تخفيضات على التيشيرتات والبناطيل','خصم 20%','طول السنة','fa-shirt',3),
-  ('عرض خاص','عند شراء بلوزتين احصلي على ثالثة بنصف الثمن','اشتري 2 بـ 1','عرض محدود الوقت','fa-gift',4),
-  ('الملابس الشتوية','تخفيض على الجاكيتات والمعاطف','خصم 15%','في فصل الشتاء','fa-snowflake',5),
-  ('المجموعة الجديدة','أحدث التصاميم والألوان المميزة','جديد','وصول مستمر','fa-wand-magic-sparkles',6)
-) as v(title,description,badge,date_label,icon,sort_order)
-where not exists (
-  select 1 from public.diva_offers o where lower(trim(o.title)) = lower(trim(v.title))
-);
+-- Offers are intentionally not seeded or modified by this migration.
+-- Existing offers remain exactly as they are in the database.
 
 -- Import the nine legacy images already used by the home page and gallery.
 -- Their source URLs are preserved; deleting a record hides it from DIVA,
