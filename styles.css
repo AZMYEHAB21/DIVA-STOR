@@ -682,3 +682,9 @@ a.c-card:hover, .c-card:hover { transform: translateY(-4px); border-color: var(-
     justify-content: center;
   }
 }
+
+
+/* CMS connection/status notice */
+.cms-notice{padding:18px;margin:16px 0;text-align:center;border:1px solid rgba(160,120,80,.35);border-radius:14px;color:var(--mute);background:rgba(160,120,80,.06)}
+
+[hidden]{display:none!important}
