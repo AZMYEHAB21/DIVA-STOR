@@ -16,7 +16,8 @@ const WHATSAPP_NUMBER = '201142640064';
 const EMAILJS = {
   publicKey: 'Oxblyy4zqUxm6KvlA',
   serviceId: 'service_endnvxq',
-  templateId: 'template_o9cp0vp'
+  templateId: 'template_o9cp0vp',
+  confirmationTemplateId: 'template_g9vwf94'
 };
 
 // مواعيد العمل بتوقيت القاهرة: [ساعة الفتح, ساعة الإغلاق] — الأيام بنظام JS (0 = الأحد ... 5 = الجمعة)
@@ -674,11 +675,23 @@ const STORE_HOURS = { default: [10, 22], 5: [14, 22] };
       btn.disabled = true; label.textContent = 'جاري الإرسال...';
       const data = { name: form.name.value.trim(), email: form.email.value.trim(), phone: form.phone.value.trim(), message: form.message.value.trim() };
       sendEmail(data).then(() => {
+        // إرسال تأكيد عربي للعميل بعد نجاح وصول الرسالة الأساسية إلى المتجر.
+        return window.emailjs.send(EMAILJS.serviceId, EMAILJS.confirmationTemplateId, data)
+          .then(() => ({ confirmationSent: true }))
+          .catch(err => {
+            // لا نعتبر إرسال الرسالة الأساسية فاشلًا إذا تعذر إرسال التأكيد.
+            console.error('EmailJS customer confirmation error', err);
+            return { confirmationSent: false };
+          });
+      }).then(result => {
         form.reset();
         $('.form-card').classList.add('sent');
+        if (result && !result.confirmationSent) {
+          toast('وصلت رسالتك إلى DIVA، لكن تعذر إرسال رسالة التأكيد إلى بريدك.', 'err');
+        }
       }).catch(err => {
-        console.error('EmailJS error', err);
-        toast('حصل خطأ في الإرسال، جرّبي تاني أو كلمينا على واتساب', 'err');
+        console.error('EmailJS contact error', err);
+        toast('حصل خطأ في إرسال رسالتك، جرّبي تاني أو كلمينا على واتساب', 'err');
       }).finally(() => { btn.disabled = false; label.textContent = old; });
     });
     const again = $('[data-send-again]');
